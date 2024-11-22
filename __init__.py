@@ -3,6 +3,31 @@ import folder_paths
 now_dir = os.path.dirname(os.path.abspath(__file__))
 input_dir = folder_paths.get_input_directory()
 output_dir = folder_paths.get_output_directory()
+import torch
+from PIL import Image
+import numpy as np
+class GetRGBEmptyImgae:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "width": ("INT",{"default": 512, "min": 128, "max": 1024, "step": 64, "display": "number"}),
+                "height":("INT",{"default": 512, "min": 128, "max": 1024, "step": 64, "display": "number"}),
+                "R":("INT",{"default": 124, "min": 0, "max": 255, "step": 1, "display": "number"}),
+                "G":("INT",{"default": 252, "min": 0, "max": 255, "step": 1, "display": "number"}),
+                "B":("INT",{"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    
+    FUNCTION = "gen_img"
+
+    CATEGORY = "AIFSH_UtilNodes"
+    def gen_img(self,width,height,R,G,B):
+        new_image = Image.new("RGB",(width,height),color=(R,G,B))
+        return (torch.from_numpy(np.asarray(new_image)/255.0).unsqueeze(0),)
+
+
 
 class PromptTextNode:
     @classmethod
@@ -69,5 +94,6 @@ WEB_DIRECTORY = "./js"
 NODE_CLASS_MAPPINGS = {
     "LoadVideo":LoadVideo,
     "PreViewVideo":PreViewVideo,
-    "PromptTextNode": PromptTextNode
+    "PromptTextNode": PromptTextNode,
+    "GetRGBEmptyImgae":GetRGBEmptyImgae
 }
