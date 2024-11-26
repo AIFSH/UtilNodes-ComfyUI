@@ -4,6 +4,8 @@ now_dir = os.path.dirname(os.path.abspath(__file__))
 input_dir = folder_paths.get_input_directory()
 output_dir = folder_paths.get_output_directory()
 import torch
+import tempfile
+import torchaudio
 from PIL import Image
 import numpy as np
 class GetRGBEmptyImgae:
@@ -53,20 +55,33 @@ class LoadVideo:
         files = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f)) and f.split('.')[-1] in ["mp4", "webm","mkv","avi"]]
         return {"required":{
             "video":(files,),
-        }}
+        },
+        "optional":{
+            "ffmpeg_audio":("BOOLEAN",{
+                "default": False
+            }),
+        }
+        }
     
     CATEGORY = "AIFSH_UtilNodes"
     DESCRIPTION = "hello world!"
 
-    RETURN_TYPES = ("VIDEO",)
+    RETURN_TYPES = ("VIDEO","AUDIO",)
 
     OUTPUT_NODE = False
 
     FUNCTION = "load_video"
 
-    def load_video(self, video):
+    def load_video(self, video,ffmpeg_audio=None):
         video_path = os.path.join(input_dir,video)
-        return (video_path,)
+        if ffmpeg_audio:
+            with tempfile.NamedTemporaryFile(suffix=".wav",dir=input_dir,delete=False) as aud:
+                os.system(f"""ffmpeg -i {video_path} -vn -acodec pcm_s16le -ar 44100 -ac 1 {aud.name} -y""")
+            waveform, sample_rate = torchaudio.load(aud.name)
+            audio = {"waveform": waveform.unsqueeze(0), "sample_rate": sample_rate}
+        else:
+            audio = dict(waveform=None,sample_rate=None)
+        return (video_path,audio,)
 
 class PreViewVideo:
     @classmethod
