@@ -56,11 +56,6 @@ class LoadVideo:
         return {"required":{
             "video":(files,),
         },
-        "optional":{
-            "ffmpeg_audio":("BOOLEAN",{
-                "default": False
-            }),
-        }
         }
     
     CATEGORY = "AIFSH_UtilNodes"
@@ -74,13 +69,12 @@ class LoadVideo:
 
     def load_video(self, video,ffmpeg_audio=None):
         video_path = os.path.join(input_dir,video)
-        if ffmpeg_audio:
-            with tempfile.NamedTemporaryFile(suffix=".wav",dir=input_dir,delete=False) as aud:
-                os.system(f"""ffmpeg -i {video_path} -vn -acodec pcm_s16le -ar 44100 -ac 1 {aud.name} -y""")
-            waveform, sample_rate = torchaudio.load(aud.name)
-            audio = {"waveform": waveform.unsqueeze(0), "sample_rate": sample_rate}
-        else:
-            audio = dict(waveform=None,sample_rate=None)
+    
+        with tempfile.NamedTemporaryFile(suffix=".wav",dir=input_dir,delete=False) as aud:
+            os.system(f"""ffmpeg -i {video_path} -vn -acodec pcm_s16le -ar 44100 -ac 1 {aud.name} -y""")
+        waveform, sample_rate = torchaudio.load(aud.name)
+        audio = {"waveform": waveform.unsqueeze(0), "sample_rate": sample_rate}
+        
         return (video_path,audio,)
 
 class PreViewVideo:
