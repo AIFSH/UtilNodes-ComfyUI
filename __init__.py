@@ -67,7 +67,7 @@ class LoadVideo:
 
     FUNCTION = "load_video"
 
-    def load_video(self, video,ffmpeg_audio=None):
+    def load_video(self, video):
         video_path = os.path.join(input_dir,video)
     
         with tempfile.NamedTemporaryFile(suffix=".wav",dir=input_dir,delete=False) as aud:
